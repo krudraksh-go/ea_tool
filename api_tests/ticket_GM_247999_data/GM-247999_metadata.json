@@ -1,0 +1,126 @@
+{
+  "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+  "id": "1034936",
+  "self": "https://work.greyorange.com/jira/rest/api/2/issue/1034936",
+  "key": "GM-247999",
+  "fields": {
+    "summary": "MSU stuck in PPS18 || GXO - VERIZON",
+    "attachment": [
+      {
+        "self": "https://work.greyorange.com/jira/rest/api/2/attachment/946754",
+        "id": "946754",
+        "filename": "image-2025-09-17-13-34-28-661.png",
+        "author": {
+          "self": "https://work.greyorange.com/jira/rest/api/2/user?username=sudhanshu.p",
+          "name": "sudhanshu.p",
+          "key": "JIRAUSER26265",
+          "emailAddress": "sudhanshu.p@greyorange.com",
+          "avatarUrls": {
+            "48x48": "https://work.greyorange.com/jira/secure/useravatar?avatarId=10122",
+            "24x24": "https://work.greyorange.com/jira/secure/useravatar?size=small&avatarId=10122",
+            "16x16": "https://work.greyorange.com/jira/secure/useravatar?size=xsmall&avatarId=10122",
+            "32x32": "https://work.greyorange.com/jira/secure/useravatar?size=medium&avatarId=10122"
+          },
+          "displayName": "Sudhanshu Pathak",
+          "active": true,
+          "timeZone": "Asia/Kolkata"
+        },
+        "created": "2025-09-17T08:04:28.778+0000",
+        "size": 15109,
+        "mimeType": "image/png",
+        "content": "https://work.greyorange.com/jira/secure/attachment/946754/image-2025-09-17-13-34-28-661.png",
+        "thumbnail": "https://work.greyorange.com/jira/secure/thumbnail/946754/_thumb_946754.png"
+      }
+    ],
+    "created": "2025-09-17T08:15:47.457+0000",
+    "description": "Hi Team,\r\n\r\nWe are observing multiple MSUs stuck at PPS 18, which is impacting both audit and picking operations. It appears that a *Ranger 1 at coordinate 2.61* is blocking these MSUs from moving forward. However, this Ranger 1 instance doesn't actually exist in the system.\r\n\r\nThe following Rangers are currently impacted due to this issue:\r\n * Ranger: 8196\r\n\r\n * Ranger: 8713\r\n\r\n * Ranger: 8585\r\n\r\nCould you please investigate and help identify the root cause? \r\n\r\n\r\n\r\n!image-2025-09-17-13-34-28-661.png!\r\n\r\n\r\n{code:java}\r\n(butler_server@localhost)3> butlerinfo:get_by_id(8196).\r\n{ok,#butlerinfo{id = 8196,version = \"2.1\",direction = 3,\r\n                position = {1,61},\r\n                status = processing,\r\n                server_error_desc = #{butler_shutdown_reason => nav_error,\r\n                                      graceful_stop_reason => <<\"collision_detected\">>,\r\n                                      status_desc => badmatch,\r\n                                      time => {1757,400407,39018}},\r\n                navstatus = init,power_state = on,\r\n                paused = #{critical => false,low_charge => false,manual => false},\r\n                taskkey = <<\"aee2b99d-fb1f-45dd-985e-fa1d39cad24b\">>,\r\n                tasktype = movetask,\r\n                deltas = {-12,24,269},\r\n                voltage = 526,power = 66.86656671664166,\r\n                address = \"172.24.136.38\",display_id = undefined,\r\n                error_desc = no_error,\r\n                timestamps = #{arm_reset_time => undefined,\r\n                               assigned => {{2025,9,16},{21,6,37}},\r\n                               auto_error_init_time => undefined,\r\n                               dead => {{2025,9,16},{22,32,32}},\r\n                               error => {{2025,9,16},{22,27,26}},\r\n                               initializing => {{2025,9,16},{22,32,41}},\r\n                               last_calibration_time => {{1994,5,10},{11,11,11}},\r\n                               last_charging_stop_time => {{2025,9,16},{20,52,57}},...}}}\r\n {code}\r\n{code:java}\r\n(butler_server@localhost)7> ppsnode:get_by_id(18).      \r\n{ok,#ppsnode{pps_id = 18,mode = audit,active_status = true,\r\n             seats = [{front_18,front},{back_18,back}],\r\n             mode_change_status = false,status = open,\r\n             requested_status = close,processable = false,\r\n             requested_mode = undefined,pps_tags = [],\r\n             types_required = [{front,1},{back,0}]}}\r\n {code}\r\n{code:java}\r\n(butler_server@localhost)12> butlerinfo:get_by_id(1).\r\n{ok,#butlerinfo{id = 1,version = \"2.0\",direction = 3,\r\n                position = {2,61},\r\n                status = processing,\r\n                server_error_desc = #{graceful_stop_reason => <<\"api_stop\">>,\r\n                                      status_desc => undefined,time => undefined},\r\n                navstatus = info,power_state = on,\r\n                paused = #{critical => false,low_charge => false,manual => false},\r\n                taskkey = <<\"82ac4a27-6fc3-4c30-8bd6-c6d4fe3dc5ab\">>,\r\n                tasktype = movetask,\r\n                deltas = {0,0,0},\r\n                voltage = 0,power = undefined,address = \"127.0.0.1\",\r\n                display_id = undefined,error_desc = no_error,\r\n                timestamps = #{arm_reset_time => undefined,\r\n                               assigned => {{2025,9,16},{15,45,20}},\r\n                               auto_error_init_time => undefined,\r\n                               dead => {{2025,9,16},{15,45,23}},\r\n                               initializing => {{2025,9,16},{15,45,25}},\r\n                               last_calibration_time => {{1994,5,10},{11,11,11}},\r\n                               last_disconnection_time => {{2025,9,16},{15,45,23}},\r\n                               last_info_cstep_time => {{2025,9,16},{15,45,29}},...}}}\r\n {code}\r\nWe have updated the bot 1 as dead\r\n{code:java}\r\nbutlerinfo:update_columns_by_id(1,[{status,dead}],[]). {code}\r\n{code:java}\r\nbutler_test_functions:purge_butler(1). {code}\r\npf logs :- \r\n{code:java}\r\ngor@tsgvm03647:/var/log/butler_server/log/pf$ tail -f debug.log | grep 'pps_id=18'\r\n2025-09-16 23:05:55.961 [debug] <0.3699.0>@pps_manager:mode_change_possible:2509 pps_id=18 Lock has been taken on Pps 18 successfully.\r\n2025-09-16 23:05:55.988 [debug] <0.3699.0>@pps_manager:mode_change_possible:2523 pps_id=18 Mode change not possible because audit tasks are pending for pps 18\r\n2025-09-16 23:05:55.988 [debug] <0.3699.0>@session_manager:handle_info:515 pps_id=18 Requesting to change status from open to close for Pps 18\r\n2025-09-16 23:05:57.606 [debug] <0.3699.0>@pps_manager:mode_change_possible:2509 pps_id=18 Lock has been taken on Pps 18 successfully. {code}\r\n\r\nResolution :- We have purged the bot and derserved the bot 1.\r\n\r\nAffected Version :- 5.4.9.37-1-gcfe0373 ",
+    "reporter": {
+      "self": "https://work.greyorange.com/jira/rest/api/2/user?username=sudhanshu.p",
+      "name": "sudhanshu.p",
+      "key": "JIRAUSER26265",
+      "emailAddress": "sudhanshu.p@greyorange.com",
+      "avatarUrls": {
+        "48x48": "https://work.greyorange.com/jira/secure/useravatar?avatarId=10122",
+        "24x24": "https://work.greyorange.com/jira/secure/useravatar?size=small&avatarId=10122",
+        "16x16": "https://work.greyorange.com/jira/secure/useravatar?size=xsmall&avatarId=10122",
+        "32x32": "https://work.greyorange.com/jira/secure/useravatar?size=medium&avatarId=10122"
+      },
+      "displayName": "Sudhanshu Pathak",
+      "active": true,
+      "timeZone": "Asia/Kolkata"
+    },
+    "assignee": {
+      "self": "https://work.greyorange.com/jira/rest/api/2/user?username=Alok.s",
+      "name": "Alok.s",
+      "key": "JIRAUSER25972",
+      "emailAddress": "alok.s@greyorange.com",
+      "avatarUrls": {
+        "48x48": "https://work.greyorange.com/jira/secure/useravatar?avatarId=10334",
+        "24x24": "https://work.greyorange.com/jira/secure/useravatar?size=small&avatarId=10334",
+        "16x16": "https://work.greyorange.com/jira/secure/useravatar?size=xsmall&avatarId=10334",
+        "32x32": "https://work.greyorange.com/jira/secure/useravatar?size=medium&avatarId=10334"
+      },
+      "displayName": "Alok Singh",
+      "active": true,
+      "timeZone": "Asia/Kolkata"
+    },
+    "priority": {
+      "self": "https://work.greyorange.com/jira/rest/api/2/priority/1",
+      "iconUrl": "https://work.greyorange.com/jira/images/icons/priorities/highest.svg",
+      "name": "Highest",
+      "id": "1"
+    },
+    "updated": "2025-09-29T12:20:39.497+0000",
+    "status": {
+      "self": "https://work.greyorange.com/jira/rest/api/2/status/14201",
+      "description": "",
+      "iconUrl": "https://work.greyorange.com/jira/images/icons/statuses/generic.png",
+      "name": "Queued for dev analysis",
+      "id": "14201",
+      "statusCategory": {
+        "self": "https://work.greyorange.com/jira/rest/api/2/statuscategory/4",
+        "id": 4,
+        "key": "indeterminate",
+        "colorName": "inprogress",
+        "name": "In Progress"
+      }
+    }
+  },
+  "renderedFields": {
+    "summary": null,
+    "attachment": [
+      {
+        "self": "https://work.greyorange.com/jira/rest/api/2/attachment/946754",
+        "id": "946754",
+        "filename": "image-2025-09-17-13-34-28-661.png",
+        "author": {
+          "self": "https://work.greyorange.com/jira/rest/api/2/user?username=sudhanshu.p",
+          "name": "sudhanshu.p",
+          "key": "JIRAUSER26265",
+          "emailAddress": "sudhanshu.p@greyorange.com",
+          "avatarUrls": {
+            "48x48": "https://work.greyorange.com/jira/secure/useravatar?avatarId=10122",
+            "24x24": "https://work.greyorange.com/jira/secure/useravatar?size=small&avatarId=10122",
+            "16x16": "https://work.greyorange.com/jira/secure/useravatar?size=xsmall&avatarId=10122",
+            "32x32": "https://work.greyorange.com/jira/secure/useravatar?size=medium&avatarId=10122"
+          },
+          "displayName": "Sudhanshu Pathak",
+          "active": true,
+          "timeZone": "Asia/Kolkata"
+        },
+        "created": "17/Sep/25 1:34 PM",
+        "size": "15 kB",
+        "mimeType": "image/png",
+        "content": "https://work.greyorange.com/jira/secure/attachment/946754/image-2025-09-17-13-34-28-661.png",
+        "thumbnail": "https://work.greyorange.com/jira/secure/thumbnail/946754/_thumb_946754.png"
+      }
+    ],
+    "created": "17/Sep/25 1:45 PM",
+    "description": "<p>Hi Team,</p>\n\n<p>We are observing multiple MSUs stuck at PPS 18, which is impacting both audit and picking operations. It appears that a <b>Ranger 1 at coordinate 2.61</b> is blocking these MSUs from moving forward. However, this Ranger 1 instance doesn't actually exist in the system.</p>\n\n<p>The following Rangers are currently impacted due to this issue:</p>\n<ul>\n\t<li>Ranger: 8196</li>\n</ul>\n\n\n<ul>\n\t<li>Ranger: 8713</li>\n</ul>\n\n\n<ul>\n\t<li>Ranger: 8585</li>\n</ul>\n\n\n<p>Could you please investigate and help identify the root cause? </p>\n\n\n\n<p><span class=\"image-wrap\" style=\"\"><img src=\"/jira/secure/attachment/946754/946754_image-2025-09-17-13-34-28-661.png\" style=\"border: 0px solid black\" /></span></p>\n\n\n<div class=\"code panel\" style=\"border-width: 1px;\"><div class=\"codeContent panelContent\">\n<pre class=\"code-java\">\r\n(butler_server@localhost)3&gt; butlerinfo:get_by_id(8196).\r\n{ok,#butlerinfo{id = 8196,version = <span class=\"code-quote\">\"2.1\"</span>,direction = 3,\r\n                position = {1,61},\r\n                status = processing,\r\n                server_error_desc = #{butler_shutdown_reason =&gt; nav_error,\r\n                                      graceful_stop_reason =&gt; &lt;&lt;<span class=\"code-quote\">\"collision_detected\"</span>&gt;&gt;,\r\n                                      status_desc =&gt; badmatch,\r\n                                      time =&gt; {1757,400407,39018}},\r\n                navstatus = init,power_state = on,\r\n                paused = #{critical =&gt; <span class=\"code-keyword\">false</span>,low_charge =&gt; <span class=\"code-keyword\">false</span>,manual =&gt; <span class=\"code-keyword\">false</span>},\r\n                taskkey = &lt;&lt;<span class=\"code-quote\">\"aee2b99d-fb1f-45dd-985e-fa1d39cad24b\"</span>&gt;&gt;,\r\n                tasktype = movetask,\r\n                deltas = {-12,24,269},\r\n                voltage = 526,power = 66.86656671664166,\r\n                address = <span class=\"code-quote\">\"172.24.136.38\"</span>,display_id = undefined,\r\n                error_desc = no_error,\r\n                timestamps = #{arm_reset_time =&gt; undefined,\r\n                               assigned =&gt; {{2025,9,16},{21,6,37}},\r\n                               auto_error_init_time =&gt; undefined,\r\n                               dead =&gt; {{2025,9,16},{22,32,32}},\r\n                               error =&gt; {{2025,9,16},{22,27,26}},\r\n                               initializing =&gt; {{2025,9,16},{22,32,41}},\r\n                               last_calibration_time =&gt; {{1994,5,10},{11,11,11}},\r\n                               last_charging_stop_time =&gt; {{2025,9,16},{20,52,57}},...}}}\r\n </pre>\n</div></div>\n<div class=\"code panel\" style=\"border-width: 1px;\"><div class=\"codeContent panelContent\">\n<pre class=\"code-java\">\r\n(butler_server@localhost)7&gt; ppsnode:get_by_id(18).      \r\n{ok,#ppsnode{pps_id = 18,mode = audit,active_status = <span class=\"code-keyword\">true</span>,\r\n             seats = [{front_18,front},{back_18,back}],\r\n             mode_change_status = <span class=\"code-keyword\">false</span>,status = open,\r\n             requested_status = close,processable = <span class=\"code-keyword\">false</span>,\r\n             requested_mode = undefined,pps_tags = [],\r\n             types_required = [{front,1},{back,0}]}}\r\n </pre>\n</div></div>\n<div class=\"code panel\" style=\"border-width: 1px;\"><div class=\"codeContent panelContent\">\n<pre class=\"code-java\">\r\n(butler_server@localhost)12&gt; butlerinfo:get_by_id(1).\r\n{ok,#butlerinfo{id = 1,version = <span class=\"code-quote\">\"2.0\"</span>,direction = 3,\r\n                position = {2,61},\r\n                status = processing,\r\n                server_error_desc = #{graceful_stop_reason =&gt; &lt;&lt;<span class=\"code-quote\">\"api_stop\"</span>&gt;&gt;,\r\n                                      status_desc =&gt; undefined,time =&gt; undefined},\r\n                navstatus = info,power_state = on,\r\n                paused = #{critical =&gt; <span class=\"code-keyword\">false</span>,low_charge =&gt; <span class=\"code-keyword\">false</span>,manual =&gt; <span class=\"code-keyword\">false</span>},\r\n                taskkey = &lt;&lt;<span class=\"code-quote\">\"82ac4a27-6fc3-4c30-8bd6-c6d4fe3dc5ab\"</span>&gt;&gt;,\r\n                tasktype = movetask,\r\n                deltas = {0,0,0},\r\n                voltage = 0,power = undefined,address = <span class=\"code-quote\">\"127.0.0.1\"</span>,\r\n                display_id = undefined,error_desc = no_error,\r\n                timestamps = #{arm_reset_time =&gt; undefined,\r\n                               assigned =&gt; {{2025,9,16},{15,45,20}},\r\n                               auto_error_init_time =&gt; undefined,\r\n                               dead =&gt; {{2025,9,16},{15,45,23}},\r\n                               initializing =&gt; {{2025,9,16},{15,45,25}},\r\n                               last_calibration_time =&gt; {{1994,5,10},{11,11,11}},\r\n                               last_disconnection_time =&gt; {{2025,9,16},{15,45,23}},\r\n                               last_info_cstep_time =&gt; {{2025,9,16},{15,45,29}},...}}}\r\n </pre>\n</div></div>\n<p>We have updated the bot 1 as dead</p>\n<div class=\"code panel\" style=\"border-width: 1px;\"><div class=\"codeContent panelContent\">\n<pre class=\"code-java\">\r\nbutlerinfo:update_columns_by_id(1,[{status,dead}],[]). </pre>\n</div></div>\n<div class=\"code panel\" style=\"border-width: 1px;\"><div class=\"codeContent panelContent\">\n<pre class=\"code-java\">\r\nbutler_test_functions:purge_butler(1). </pre>\n</div></div>\n<p>pf logs :- </p>\n<div class=\"code panel\" style=\"border-width: 1px;\"><div class=\"codeContent panelContent\">\n<pre class=\"code-java\">\r\ngor@tsgvm03647:/<span class=\"code-keyword\">var</span>/log/butler_server/log/pf$ tail -f debug.log | grep <span class=\"code-quote\">'pps_id=18'</span>\r\n2025-09-16 23:05:55.961 [debug] &lt;0.3699.0&gt;@pps_manager:mode_change_possible:2509 pps_id=18 Lock has been taken on Pps 18 successfully.\r\n2025-09-16 23:05:55.988 [debug] &lt;0.3699.0&gt;@pps_manager:mode_change_possible:2523 pps_id=18 Mode change not possible because audit tasks are pending <span class=\"code-keyword\">for</span> pps 18\r\n2025-09-16 23:05:55.988 [debug] &lt;0.3699.0&gt;@session_manager:handle_info:515 pps_id=18 Requesting to change status from open to close <span class=\"code-keyword\">for</span> Pps 18\r\n2025-09-16 23:05:57.606 [debug] &lt;0.3699.0&gt;@pps_manager:mode_change_possible:2509 pps_id=18 Lock has been taken on Pps 18 successfully. </pre>\n</div></div>\n\n<p>Resolution :- We have purged the bot and derserved the bot 1.</p>\n\n<p>Affected Version :- 5.4.9.37-1-gcfe0373 </p>",
+    "reporter": null,
+    "assignee": null,
+    "priority": null,
+    "updated": "2 days ago 5:50 PM",
+    "status": null
+  }
+}

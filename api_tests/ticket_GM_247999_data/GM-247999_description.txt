@@ -1,0 +1,217 @@
+Ticket: GM-247999
+Summary: MSU stuck in PPS18 || GXO - VERIZON
+Status: Queued for dev analysis
+Created: 2025-09-17T08:15:47.457+0000
+Updated: 2025-09-29T12:20:39.497+0000
+==================================================
+DESCRIPTION (Raw):
+==================================================
+Hi Team,
+
+We are observing multiple MSUs stuck at PPS 18, which is impacting both audit and picking operations. It appears that a *Ranger 1 at coordinate 2.61* is blocking these MSUs from moving forward. However, this Ranger 1 instance doesn't actually exist in the system.
+
+The following Rangers are currently impacted due to this issue:
+ * Ranger: 8196
+
+ * Ranger: 8713
+
+ * Ranger: 8585
+
+Could you please investigate and help identify the root cause? 
+
+
+
+!image-2025-09-17-13-34-28-661.png!
+
+
+{code:java}
+(butler_server@localhost)3> butlerinfo:get_by_id(8196).
+{ok,#butlerinfo{id = 8196,version = "2.1",direction = 3,
+                position = {1,61},
+                status = processing,
+                server_error_desc = #{butler_shutdown_reason => nav_error,
+                                      graceful_stop_reason => <<"collision_detected">>,
+                                      status_desc => badmatch,
+                                      time => {1757,400407,39018}},
+                navstatus = init,power_state = on,
+                paused = #{critical => false,low_charge => false,manual => false},
+                taskkey = <<"aee2b99d-fb1f-45dd-985e-fa1d39cad24b">>,
+                tasktype = movetask,
+                deltas = {-12,24,269},
+                voltage = 526,power = 66.86656671664166,
+                address = "172.24.136.38",display_id = undefined,
+                error_desc = no_error,
+                timestamps = #{arm_reset_time => undefined,
+                               assigned => {{2025,9,16},{21,6,37}},
+                               auto_error_init_time => undefined,
+                               dead => {{2025,9,16},{22,32,32}},
+                               error => {{2025,9,16},{22,27,26}},
+                               initializing => {{2025,9,16},{22,32,41}},
+                               last_calibration_time => {{1994,5,10},{11,11,11}},
+                               last_charging_stop_time => {{2025,9,16},{20,52,57}},...}}}
+ {code}
+{code:java}
+(butler_server@localhost)7> ppsnode:get_by_id(18).      
+{ok,#ppsnode{pps_id = 18,mode = audit,active_status = true,
+             seats = [{front_18,front},{back_18,back}],
+             mode_change_status = false,status = open,
+             requested_status = close,processable = false,
+             requested_mode = undefined,pps_tags = [],
+             types_required = [{front,1},{back,0}]}}
+ {code}
+{code:java}
+(butler_server@localhost)12> butlerinfo:get_by_id(1).
+{ok,#butlerinfo{id = 1,version = "2.0",direction = 3,
+                position = {2,61},
+                status = processing,
+                server_error_desc = #{graceful_stop_reason => <<"api_stop">>,
+                                      status_desc => undefined,time => undefined},
+                navstatus = info,power_state = on,
+                paused = #{critical => false,low_charge => false,manual => false},
+                taskkey = <<"82ac4a27-6fc3-4c30-8bd6-c6d4fe3dc5ab">>,
+                tasktype = movetask,
+                deltas = {0,0,0},
+                voltage = 0,power = undefined,address = "127.0.0.1",
+                display_id = undefined,error_desc = no_error,
+                timestamps = #{arm_reset_time => undefined,
+                               assigned => {{2025,9,16},{15,45,20}},
+                               auto_error_init_time => undefined,
+                               dead => {{2025,9,16},{15,45,23}},
+                               initializing => {{2025,9,16},{15,45,25}},
+                               last_calibration_time => {{1994,5,10},{11,11,11}},
+                               last_disconnection_time => {{2025,9,16},{15,45,23}},
+                               last_info_cstep_time => {{2025,9,16},{15,45,29}},...}}}
+ {code}
+We have updated the bot 1 as dead
+{code:java}
+butlerinfo:update_columns_by_id(1,[{status,dead}],[]). {code}
+{code:java}
+butler_test_functions:purge_butler(1). {code}
+pf logs :- 
+{code:java}
+gor@tsgvm03647:/var/log/butler_server/log/pf$ tail -f debug.log | grep 'pps_id=18'
+2025-09-16 23:05:55.961 [debug] <0.3699.0>@pps_manager:mode_change_possible:2509 pps_id=18 Lock has been taken on Pps 18 successfully.
+2025-09-16 23:05:55.988 [debug] <0.3699.0>@pps_manager:mode_change_possible:2523 pps_id=18 Mode change not possible because audit tasks are pending for pps 18
+2025-09-16 23:05:55.988 [debug] <0.3699.0>@session_manager:handle_info:515 pps_id=18 Requesting to change status from open to close for Pps 18
+2025-09-16 23:05:57.606 [debug] <0.3699.0>@pps_manager:mode_change_possible:2509 pps_id=18 Lock has been taken on Pps 18 successfully. {code}
+
+Resolution :- We have purged the bot and derserved the bot 1.
+
+Affected Version :- 5.4.9.37-1-gcfe0373 
+
+==================================================
+DESCRIPTION (Rendered HTML):
+==================================================
+<p>Hi Team,</p>
+
+<p>We are observing multiple MSUs stuck at PPS 18, which is impacting both audit and picking operations. It appears that a <b>Ranger 1 at coordinate 2.61</b> is blocking these MSUs from moving forward. However, this Ranger 1 instance doesn't actually exist in the system.</p>
+
+<p>The following Rangers are currently impacted due to this issue:</p>
+<ul>
+	<li>Ranger: 8196</li>
+</ul>
+
+
+<ul>
+	<li>Ranger: 8713</li>
+</ul>
+
+
+<ul>
+	<li>Ranger: 8585</li>
+</ul>
+
+
+<p>Could you please investigate and help identify the root cause? </p>
+
+
+
+<p><span class="image-wrap" style=""><img src="/jira/secure/attachment/946754/946754_image-2025-09-17-13-34-28-661.png" style="border: 0px solid black" /></span></p>
+
+
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">
+(butler_server@localhost)3&gt; butlerinfo:get_by_id(8196).
+{ok,#butlerinfo{id = 8196,version = <span class="code-quote">"2.1"</span>,direction = 3,
+                position = {1,61},
+                status = processing,
+                server_error_desc = #{butler_shutdown_reason =&gt; nav_error,
+                                      graceful_stop_reason =&gt; &lt;&lt;<span class="code-quote">"collision_detected"</span>&gt;&gt;,
+                                      status_desc =&gt; badmatch,
+                                      time =&gt; {1757,400407,39018}},
+                navstatus = init,power_state = on,
+                paused = #{critical =&gt; <span class="code-keyword">false</span>,low_charge =&gt; <span class="code-keyword">false</span>,manual =&gt; <span class="code-keyword">false</span>},
+                taskkey = &lt;&lt;<span class="code-quote">"aee2b99d-fb1f-45dd-985e-fa1d39cad24b"</span>&gt;&gt;,
+                tasktype = movetask,
+                deltas = {-12,24,269},
+                voltage = 526,power = 66.86656671664166,
+                address = <span class="code-quote">"172.24.136.38"</span>,display_id = undefined,
+                error_desc = no_error,
+                timestamps = #{arm_reset_time =&gt; undefined,
+                               assigned =&gt; {{2025,9,16},{21,6,37}},
+                               auto_error_init_time =&gt; undefined,
+                               dead =&gt; {{2025,9,16},{22,32,32}},
+                               error =&gt; {{2025,9,16},{22,27,26}},
+                               initializing =&gt; {{2025,9,16},{22,32,41}},
+                               last_calibration_time =&gt; {{1994,5,10},{11,11,11}},
+                               last_charging_stop_time =&gt; {{2025,9,16},{20,52,57}},...}}}
+ </pre>
+</div></div>
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">
+(butler_server@localhost)7&gt; ppsnode:get_by_id(18).      
+{ok,#ppsnode{pps_id = 18,mode = audit,active_status = <span class="code-keyword">true</span>,
+             seats = [{front_18,front},{back_18,back}],
+             mode_change_status = <span class="code-keyword">false</span>,status = open,
+             requested_status = close,processable = <span class="code-keyword">false</span>,
+             requested_mode = undefined,pps_tags = [],
+             types_required = [{front,1},{back,0}]}}
+ </pre>
+</div></div>
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">
+(butler_server@localhost)12&gt; butlerinfo:get_by_id(1).
+{ok,#butlerinfo{id = 1,version = <span class="code-quote">"2.0"</span>,direction = 3,
+                position = {2,61},
+                status = processing,
+                server_error_desc = #{graceful_stop_reason =&gt; &lt;&lt;<span class="code-quote">"api_stop"</span>&gt;&gt;,
+                                      status_desc =&gt; undefined,time =&gt; undefined},
+                navstatus = info,power_state = on,
+                paused = #{critical =&gt; <span class="code-keyword">false</span>,low_charge =&gt; <span class="code-keyword">false</span>,manual =&gt; <span class="code-keyword">false</span>},
+                taskkey = &lt;&lt;<span class="code-quote">"82ac4a27-6fc3-4c30-8bd6-c6d4fe3dc5ab"</span>&gt;&gt;,
+                tasktype = movetask,
+                deltas = {0,0,0},
+                voltage = 0,power = undefined,address = <span class="code-quote">"127.0.0.1"</span>,
+                display_id = undefined,error_desc = no_error,
+                timestamps = #{arm_reset_time =&gt; undefined,
+                               assigned =&gt; {{2025,9,16},{15,45,20}},
+                               auto_error_init_time =&gt; undefined,
+                               dead =&gt; {{2025,9,16},{15,45,23}},
+                               initializing =&gt; {{2025,9,16},{15,45,25}},
+                               last_calibration_time =&gt; {{1994,5,10},{11,11,11}},
+                               last_disconnection_time =&gt; {{2025,9,16},{15,45,23}},
+                               last_info_cstep_time =&gt; {{2025,9,16},{15,45,29}},...}}}
+ </pre>
+</div></div>
+<p>We have updated the bot 1 as dead</p>
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">
+butlerinfo:update_columns_by_id(1,[{status,dead}],[]). </pre>
+</div></div>
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">
+butler_test_functions:purge_butler(1). </pre>
+</div></div>
+<p>pf logs :- </p>
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">
+gor@tsgvm03647:/<span class="code-keyword">var</span>/log/butler_server/log/pf$ tail -f debug.log | grep <span class="code-quote">'pps_id=18'</span>
+2025-09-16 23:05:55.961 [debug] &lt;0.3699.0&gt;@pps_manager:mode_change_possible:2509 pps_id=18 Lock has been taken on Pps 18 successfully.
+2025-09-16 23:05:55.988 [debug] &lt;0.3699.0&gt;@pps_manager:mode_change_possible:2523 pps_id=18 Mode change not possible because audit tasks are pending <span class="code-keyword">for</span> pps 18
+2025-09-16 23:05:55.988 [debug] &lt;0.3699.0&gt;@session_manager:handle_info:515 pps_id=18 Requesting to change status from open to close <span class="code-keyword">for</span> Pps 18
+2025-09-16 23:05:57.606 [debug] &lt;0.3699.0&gt;@pps_manager:mode_change_possible:2509 pps_id=18 Lock has been taken on Pps 18 successfully. </pre>
+</div></div>
+
+<p>Resolution :- We have purged the bot and derserved the bot 1.</p>
+
+<p>Affected Version :- 5.4.9.37-1-gcfe0373 </p>

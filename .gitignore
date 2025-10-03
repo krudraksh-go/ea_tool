@@ -1,0 +1,33 @@
+# Virtual environment
+venv/
+
+# JIRA tickets data
+jira_tickets_data/
+
+# Multimodal documents
+multimodal_documents/
+
+# Chroma database
+chroma_db/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local

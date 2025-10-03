@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JIRA Duplicate Detection Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f1419;
+            color: #c9d1d9;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            padding: 25px 0;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            color: #f0f6fc;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            color: #8b949e;
+            font-size: 0.95em;
+        }
+
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            max-width: 300px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #f0f6fc;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            font-size: 0.95em;
+            color: #f0f6fc;
+            transition: border-color 0.2s;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            background: #161b22;
+        }
+
+        .input-group input::placeholder {
+            color: #6e7681;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            background: #238636;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #2ea043;
+        }
+
+        .btn:disabled {
+            background: #21262d;
+            color: #6e7681;
+            cursor: not-allowed;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .section-title {
+            color: #f0f6fc;
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #21262d;
+        }
+
+        /* Horizontal layout for progress items */
+        #progressItems {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .progress-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 16px;
+            background: #0d1117;
+            border-radius: 4px;
+            border-bottom: 3px solid #21262d;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .progress-item.in-progress {
+            border-bottom-color: #58a6ff;
+            background: #161b22;
+        }
+
+        .progress-item.complete {
+            border-bottom-color: #238636;
+            background: #0d1117;
+        }
+
+        .progress-item.error {
+            border-bottom-color: #da3633;
+            background: #1a1414;
+        }
+
+        .progress-icon {
+            width: 36px;
+            height: 36px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background: #21262d;
+            color: #8b949e;
+            font-size: 0.8em;
+            font-weight: 600;
+            font-family: 'Monaco', monospace;
+        }
+
+        .progress-item.in-progress .progress-icon {
+            background: #1f6feb;
+            color: #ffffff;
+        }
+
+        .progress-item.complete .progress-icon {
+            background: #238636;
+            color: #ffffff;
+        }
+
+        .progress-item.error .progress-icon {
+            background: #da3633;
+            color: #ffffff;
+        }
+
+        .progress-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .progress-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #f0f6fc;
+            font-size: 0.85em;
+            white-space: nowrap;
+        }
+
+        .progress-message {
+            color: #8b949e;
+            font-size: 0.75em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .spinner {
+            border: 2px solid #21262d;
+            border-top: 2px solid #58a6ff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .ticket-info {
+            background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 2px solid #30363d;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            color: inherit;
+        }
+
+        .ticket-info:hover {
+            border-color: #58a6ff;
+            background: linear-gradient(135deg, #1c2128 0%, #161b22 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
+        }
+
+        .ticket-info h3 {
+            color: #58a6ff;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticket-info h3 .jira-link-icon {
+            color: #8b949e;
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .ticket-info:hover h3 .jira-link-icon {
+            opacity: 1;
+            color: #58a6ff;
+        }
+
+        .ticket-info p {
+            color: #c9d1d9;
+            margin-bottom: 12px;
+        }
+
+        .ticket-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .ticket-meta-item {
+            display: flex;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .ticket-meta-label {
+            font-weight: 500;
+            color: #8b949e;
+            min-width: 70px;
+        }
+
+        .ticket-meta-value {
+            color: #c9d1d9;
+        }
+
+        .similar-tickets {
+            margin-top: 20px;
+        }
+
+        .similar-tickets h3 {
+            color: #f0f6fc;
+            margin-bottom: 16px;
+            font-size: 1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Concise button-style similar tickets */
+        .similar-ticket {
+            background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+            border: 2px solid #30363d;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .similar-ticket:hover {
+            border-color: #58a6ff;
+            background: linear-gradient(135deg, #1c2128 0%, #161b22 100%);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(88, 166, 255, 0.2);
+        }
+
+        .similar-ticket:active {
+            transform: translateX(2px);
+        }
+
+        .similar-ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .similar-ticket-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .similar-ticket-rank {
+            background: #21262d;
+            color: #8b949e;
+            font-weight: 700;
+            font-size: 0.85em;
+            padding: 4px 8px;
+            border-radius: 4px;
+            min-width: 32px;
+            text-align: center;
+            font-family: 'Monaco', monospace;
+        }
+
+        .similar-ticket-id {
+            font-weight: 600;
+            font-size: 1.05em;
+            color: #58a6ff;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .similar-ticket-badges {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .similarity-score {
+            background: linear-gradient(135deg, #1f6feb 0%, #1a5bc9 100%);
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.95em;
+            font-weight: 700;
+            font-family: 'Monaco', monospace;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(31, 111, 235, 0.3);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .badge-resolution {
+            background: #238636;
+            color: #ffffff;
+        }
+
+        .badge-status {
+            background: #8250df;
+            color: #ffffff;
+        }
+
+        .badge-priority {
+            background: #da3633;
+            color: #ffffff;
+        }
+
+        /* External link icon */
+        .jira-link-icon {
+            color: #8b949e;
+            font-size: 0.85em;
+            margin-left: 8px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .similar-ticket:hover .jira-link-icon {
+            opacity: 1;
+            color: #58a6ff;
+        }
+
+        .analysis-output {
+            background: #0d1117;
+            border-left: 3px solid #1f6feb;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            line-height: 1.7;
+        }
+
+        .analysis-output h3 {
+            color: #58a6ff;
+            margin-bottom: 16px;
+            font-size: 1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .analysis-output h4 {
+            color: #f0f6fc;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+
+        .analysis-output h4:first-of-type {
+            margin-top: 0;
+        }
+
+        .analysis-output strong {
+            color: #f0f6fc;
+        }
+
+        .error-message {
+            background: #1a1414;
+            border-left: 3px solid #da3633;
+            padding: 16px;
+            border-radius: 4px;
+            color: #f85149;
+            margin-top: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-right: 6px;
+            font-family: 'Monaco', monospace;
+        }
+
+        .badge-resolution {
+            background: #1f6feb;
+            color: #ffffff;
+        }
+
+        .badge-status {
+            background: #6e7681;
+            color: #ffffff;
+        }
+
+        .badge-priority {
+            background: #da7633;
+            color: #ffffff;
+        }
+
+        .chunks-indicator {
+            color: #6e7681;
+            font-size: 0.8em;
+            font-family: 'Monaco', monospace;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>EA Duplicate Detection System</h1>
+            <p>AI-powered analysis for identifying similar engineering analysis tickets</p>
+        </div>
+
+        <div class="card">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="ticketNumber">Ticket Number (GM-XXXXXX)</label>
+                    <input 
+                        type="text" 
+                        id="ticketNumber" 
+                        placeholder="e.g., 247999"
+                        pattern="[0-9]+"
+                    >
+                </div>
+                <button class="btn" id="analyzeBtn" onclick="analyzeTicket()">
+                    Analyze
+                </button>
+            </div>
+
+            <div class="progress-section" id="progressSection">
+                <h3 class="section-title">Processing Status</h3>
+                <div id="progressItems"></div>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <h3 class="section-title">Analysis Results</h3>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let eventSource = null;
+
+        function analyzeTicket() {
+            const ticketNumber = document.getElementById('ticketNumber').value.trim();
+            
+            if (!ticketNumber || !/^\d+$/.test(ticketNumber)) {
+                alert('Please enter a valid ticket number (digits only)');
+                return;
+            }
+
+            // Reset UI
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('progressItems').innerHTML = '';
+            document.getElementById('resultsContent').innerHTML = '';
+            document.getElementById('analyzeBtn').disabled = true;
+
+            // Close existing EventSource if any
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            // Create EventSource for streaming
+            eventSource = new EventSource(`/api/analyze-stream/${ticketNumber}`);
+
+            const progressSteps = {
+                extract: { icon: 'EXT', title: 'Extracting Ticket Data' },
+                multimodal: { icon: 'IMG', title: 'Processing Attachments' },
+                embedding: { icon: 'EMB', title: 'Creating Embeddings' },
+                search: { icon: 'QRY', title: 'Searching Similar Tickets' },
+                analyze: { icon: 'AI', title: 'AI Analysis' },
+                complete: { icon: 'OK', title: 'Complete' },
+                error: { icon: 'ERR', title: 'Error' }
+            };
+
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                console.log('Received:', data);
+
+                if (data.step === 'complete' && data.status === 'success') {
+                    // Display final results
+                    displayResults(data);
+                    eventSource.close();
+                    document.getElementById('analyzeBtn').disabled = false;
+                } else if (data.step === 'error') {
+                    // Display error
+                    displayError(data.message);
+                    eventSource.close();
+                    document.getElementById('analyzeBtn').disabled = false;
+                } else {
+                    // Update progress
+                    updateProgress(data, progressSteps);
+                }
+            };
+
+            eventSource.onerror = function(error) {
+                console.error('EventSource error:', error);
+                displayError('Connection error. Please try again.');
+                eventSource.close();
+                document.getElementById('analyzeBtn').disabled = false;
+            };
+        }
+
+        function updateProgress(data, progressSteps) {
+            const progressItems = document.getElementById('progressItems');
+            const step = progressSteps[data.step] || { icon: 'SYS', title: data.step };
+            
+            let existingItem = document.getElementById(`progress-${data.step}`);
+            
+            if (!existingItem) {
+                existingItem = document.createElement('div');
+                existingItem.id = `progress-${data.step}`;
+                existingItem.className = 'progress-item';
+                existingItem.innerHTML = `
+                    <div class="progress-icon">${step.icon}</div>
+                    <div class="progress-content">
+                        <div class="progress-title">${step.title}</div>
+                        <div class="progress-message"></div>
+                    </div>
+                `;
+                progressItems.appendChild(existingItem);
+            }
+
+            // Update status
+            existingItem.className = 'progress-item';
+            if (data.status === 'in_progress') {
+                existingItem.classList.add('in-progress');
+                existingItem.querySelector('.progress-icon').innerHTML = '<div class="spinner"></div>';
+            } else if (data.status === 'complete') {
+                existingItem.classList.add('complete');
+                existingItem.querySelector('.progress-icon').innerHTML = 'OK';
+            } else if (data.status === 'error') {
+                existingItem.classList.add('error');
+                existingItem.querySelector('.progress-icon').innerHTML = 'ERR';
+            }
+
+            // Update message
+            existingItem.querySelector('.progress-message').textContent = data.message;
+        }
+
+        function displayResults(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            document.getElementById('resultsSection').classList.add('active');
+
+            const newTicketJiraUrl = `https://work.greyorange.com/jira/browse/${data.ticket_id}`;
+
+            let html = `
+                <a href="${newTicketJiraUrl}" target="_blank" class="ticket-info">
+                    <h3>New Ticket: ${data.ticket_id} <span class="jira-link-icon">↗</span></h3>
+                    <p><strong>Summary:</strong> ${data.summary}</p>
+                    <div class="ticket-meta">
+                        <div class="ticket-meta-item">
+                            <span class="ticket-meta-label">Status:</span>
+                            <span class="ticket-meta-value">${data.new_ticket_data.status}</span>
+                        </div>
+                        <div class="ticket-meta-item">
+                            <span class="ticket-meta-label">Priority:</span>
+                            <span class="ticket-meta-value">${data.new_ticket_data.priority}</span>
+                        </div>
+                        <div class="ticket-meta-item">
+                            <span class="ticket-meta-label">Created:</span>
+                            <span class="ticket-meta-value">${new Date(data.new_ticket_data.created).toLocaleString()}</span>
+                        </div>
+                    </div>
+                </a>
+
+                <div class="similar-tickets">
+                    <h3>Top ${data.similar_tickets.length} Similar Tickets</h3>
+            `;
+
+            data.similar_tickets.forEach((ticket, index) => {
+                const jiraUrl = `https://work.greyorange.com/jira/browse/${ticket.ticket_id}`;
+                
+                html += `
+                    <a href="${jiraUrl}" target="_blank" class="similar-ticket">
+                        <div class="similar-ticket-header">
+                            <div class="similar-ticket-left">
+                                <span class="similar-ticket-rank">#${index + 1}</span>
+                                <span class="similar-ticket-id">${ticket.ticket_id}</span>
+                                <div class="similar-ticket-badges">
+                                    <span class="badge badge-resolution">${ticket.metadata.resolution || 'N/A'}</span>
+                                    <span class="badge badge-status">${ticket.metadata.status || 'N/A'}</span>
+                                </div>
+                            </div>
+                            <span class="jira-link-icon">↗</span>
+                        </div>
+                    </a>
+                `;
+            });
+
+            html += `
+                </div>
+
+                <div class="analysis-output">
+                    <h3>AI Analysis Report</h3>
+                    ${extractAndDisplayBestMatch(data.analysis.analysis_text)}
+                    ${formatMarkdown(data.analysis.analysis_text)}
+                </div>
+            `;
+
+            resultsContent.innerHTML = html;
+        }
+
+        function extractAndDisplayBestMatch(analysisText) {
+            // Extract JIRA ID from "Most Relevant Past Ticket:" or similar patterns
+            const patterns = [
+                /Most Relevant Past Ticket:\s*\*\*([A-Z]+-\d+)\*\*/i,
+                /Most Relevant Past Ticket:\s*([A-Z]+-\d+)/i,
+                /Best Match:\s*\*\*([A-Z]+-\d+)\*\*/i,
+                /Best Match:\s*([A-Z]+-\d+)/i,
+                /\*\*([A-Z]+-\d+)\*\*\.\s*This ticket is the strongest match/i,
+                /([A-Z]+-\d+)\s*is the strongest match/i
+            ];
+
+            let bestMatch = null;
+            for (const pattern of patterns) {
+                const match = analysisText.match(pattern);
+                if (match && match[1]) {
+                    bestMatch = match[1];
+                    break;
+                }
+            }
+
+            if (bestMatch) {
+                const jiraUrl = `https://work.greyorange.com/jira/browse/${bestMatch}`;
+                return `
+                    <div style="background: linear-gradient(135deg, #1f6feb 0%, #1a5bc9 100%); 
+                                padding: 16px 20px; 
+                                border-radius: 6px; 
+                                margin-bottom: 20px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);">
+                        <div>
+                            <div style="font-size: 0.8em; 
+                                        color: rgba(255,255,255,0.8); 
+                                        text-transform: uppercase; 
+                                        letter-spacing: 0.05em;
+                                        margin-bottom: 6px;">
+                                rBest Match
+                            </div>
+                            <a href="${jiraUrl}" 
+                               target="_blank" 
+                               style="font-size: 1.3em; 
+                                      font-weight: 700; 
+                                      color: #ffffff; 
+                                      text-decoration: none;
+                                      font-family: 'Monaco', monospace;
+                                      display: flex;
+                                      align-items: center;
+                                      gap: 8px;">
+                                ${bestMatch}
+                                <span style="font-size: 0.8em; opacity: 0.9;">↗</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        function displayError(message) {
+            const resultsContent = document.getElementById('resultsContent');
+            document.getElementById('resultsSection').classList.add('active');
+            
+            resultsContent.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+
+        function formatMarkdown(text) {
+            // Basic markdown formatting
+            return text
+                .replace(/^### (.*$)/gim, '<h4>$1</h4>')
+                .replace(/^## (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^# (.*$)/gim, '<h2>$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Allow Enter key to trigger analysis
+        document.getElementById('ticketNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeTicket();
+            }
+        });
+    </script>
+</body>
+</html>
