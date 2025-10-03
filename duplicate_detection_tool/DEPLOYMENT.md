@@ -3,9 +3,10 @@
 ## Changes Made for VM Deployment
 
 ### 1. Port Configuration
-- **Changed port from 8000 to 6000**
+- **Changed port from 8000 to 8080**
   - Updated in `app.py` (line 235)
   - Updated in `start_server.sh` (line 13-14)
+  - Port 8080 is Chrome-safe (port 6000 is blocked by Chrome's ERR_UNSAFE_PORT)
 
 ### 2. Path Configuration
 - **Converted absolute paths to relative paths**
@@ -57,34 +58,34 @@ python app.py
 ### 5. Access from Global Network
 The tool will be accessible at:
 ```
-http://[VM_IP]:6000
+http://[VM_IP]:8080
 ```
 
 For example:
 ```
-http://192.168.1.100:6000
-http://10.0.0.50:6000
+http://192.168.1.100:8080
+http://10.0.0.50:8080
 ```
 
 ## Firewall Configuration
 
-Make sure port 6000 is open on your VM firewall:
+Make sure port 8080 is open on your VM firewall:
 
 ### For UFW (Ubuntu/Debian):
 ```bash
-sudo ufw allow 6000/tcp
+sudo ufw allow 8080/tcp
 sudo ufw reload
 ```
 
 ### For firewalld (CentOS/RHEL):
 ```bash
-sudo firewall-cmd --permanent --add-port=6000/tcp
+sudo firewall-cmd --permanent --add-port=8080/tcp
 sudo firewall-cmd --reload
 ```
 
 ### For iptables:
 ```bash
-sudo iptables -A INPUT -p tcp --dport 6000 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
 sudo service iptables save
 ```
 
@@ -128,12 +129,12 @@ sudo systemctl status duplicate-detection.service
 
 Test if the service is running:
 ```bash
-curl http://localhost:6000/health
+curl http://localhost:8080/health
 ```
 
 From external network:
 ```bash
-curl http://[VM_IP]:6000/health
+curl http://[VM_IP]:8080/health
 ```
 
 Expected response:
@@ -144,9 +145,10 @@ Expected response:
 ## Troubleshooting
 
 ### Cannot access from external network:
-1. Verify firewall allows port 6000
+1. Verify firewall allows port 8080
 2. Check if VM has a public IP or is behind NAT
-3. Verify server is binding to 0.0.0.0: `netstat -tulpn | grep 6000`
+3. Verify server is binding to 0.0.0.0: `netstat -tulpn | grep 8080`
+4. Note: Chrome blocks port 6000 (ERR_UNSAFE_PORT) - use 8080 instead
 
 ### Application won't start:
 1. Check Python version: `python --version` (requires Python 3.8+)
