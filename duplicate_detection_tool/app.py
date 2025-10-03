@@ -29,8 +29,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 JIRA_BASE_URL = "https://work.greyorange.com/jira"
 JIRA_USER_ID = "XDR_log"
 JIRA_API_TOKEN = "NTUwNDMxMjMwNjE5OtIfJ86FEMso4JPQjkiuQEvkqohc"
-CHROMA_DB_DIR = "/Users/rudraksh.k/Documents/tool_development/duplicate_detection/chroma_db"
-TEMP_PROCESSING_DIR = "/Users/rudraksh.k/Documents/tool_development/duplicate_detection/duplicate_detection_tool/temp_processing"
+
+# Use relative paths that work across different environments
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+CHROMA_DB_DIR = os.path.join(PROJECT_ROOT, "chroma_db")
+TEMP_PROCESSING_DIR = os.path.join(BASE_DIR, "temp_processing")
 
 # Ensure temp directory exists
 os.makedirs(TEMP_PROCESSING_DIR, exist_ok=True)
@@ -228,5 +232,5 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=6000)
 
