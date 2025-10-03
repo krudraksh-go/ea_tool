@@ -536,12 +536,11 @@
         <div class="card">
             <div class="input-section">
                 <div class="input-group">
-                    <label for="ticketNumber">Ticket Number (GM-XXXXXX)</label>
+                    <label for="ticketNumber">Ticket Number</label>
                     <input 
                         type="text" 
                         id="ticketNumber" 
-                        placeholder="e.g., 247999"
-                        pattern="[0-9]+"
+                        placeholder="e.g., GM-247999"
                     >
                 </div>
                 <button class="btn" id="analyzeBtn" onclick="analyzeTicket()">
@@ -565,10 +564,27 @@
         let eventSource = null;
 
         function analyzeTicket() {
-            const ticketNumber = document.getElementById('ticketNumber').value.trim();
+            let ticketNumber = document.getElementById('ticketNumber').value.trim().toUpperCase();
             
-            if (!ticketNumber || !/^\d+$/.test(ticketNumber)) {
-                alert('Please enter a valid ticket number (digits only)');
+            // Accept both formats: "GM-247999" or "247999"
+            const gmFormat = /^GM-\d+$/;
+            const digitsOnly = /^\d+$/;
+            
+            if (!ticketNumber) {
+                alert('Please enter a ticket number');
+                return;
+            }
+            
+            // If it starts with GM-, validate the full format
+            if (ticketNumber.startsWith('GM-')) {
+                if (!gmFormat.test(ticketNumber)) {
+                    alert('Please enter a valid ticket number (format: GM-XXXXXX)');
+                    return;
+                }
+                // Strip the "GM-" prefix for the API call
+                ticketNumber = ticketNumber.substring(3);
+            } else if (!digitsOnly.test(ticketNumber)) {
+                alert('Please enter a valid ticket number (format: GM-XXXXXX or just the number)');
                 return;
             }
 
